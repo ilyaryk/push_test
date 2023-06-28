@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.validators import UniqueValidator
+from rest_framework.exceptions import NotFound
+from django.core.exceptions import ValidationError as PasswordValidationError
+from django.contrib.auth.password_validation import validate_password
 
 from .models import Recipe, Tag, Favorite, Follow, User, Cart, Ingredient
 
@@ -74,3 +78,32 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Ingredient
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('first_name', 'last_name', 'username', 'email', 'password', )
+        model = User
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    """Serializer for user registration."""
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'username', 'email', 'password', )
+
+
+class GetJWTTokenSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)
+
+    def validate(self, data):
+        if not User.objects.filter(email=data.get("email")).exists():
+            raise NotFound("Ошибка: не верный email")
+        if not User.objects.filter(
+            password=data.get("confirmation_code")
+        ).exists():
+            raise serializers.ValidationError(
+                "Ошибка: не верный confirmation_code"
+            )
+        return data

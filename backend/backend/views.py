@@ -1,14 +1,18 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework import filters
+from rest_framework import filters, status, views, viewsets
+from rest_framework.response import Response
 from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.viewsets import GenericViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny
 
-from .models import Recipe, Tag, Favorite, Follow, Cart, Ingredient
+from .models import Recipe, Tag, Favorite, Follow, Cart, Ingredient, User
 from .permissions import IsAuthorOrReadOnly
 from .serializers import RecipeSerializer, FavoriteSerializer, TagSerializer,\
-        FollowSerializer, CartSerializer, IngredientSerializer
+        FollowSerializer, CartSerializer, IngredientSerializer, UserSerializer, \
+        SignUpSerializer, GetJWTTokenSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -74,3 +78,52 @@ class CartViewSet(viewsets.ModelViewSet):
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def me(self, request):
+        serializer = self.get_serializer(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+
+        if request.user.is_admin:
+            serializer.save()
+        else:
+            serializer.save(role=self.request.user.role)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SignUpApiView(viewsets.ModelViewSet):
+    """User registration."""
+
+    queryset = User.objects.all()
+    serializer_class = SignUpSerializer
+    permission_classes = (AllowAny,)
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data = serializer.data
+        return Response(status=status.HTTP_200_OK)
+
+
+class GetJWTTokenView(views.APIView):
+    def post(self, request):
+        serializer = GetJWTTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(
+            User, password=serializer.data.get("confirmation_code")
+        )
+        refresh = RefreshToken.for_user(user)
+
+        return Response(
+            {"token": str(refresh.access_token)},
+            status=status.HTTP_201_CREATED,
+        )
