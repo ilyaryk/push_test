@@ -12,23 +12,11 @@ class RoleChoices(models.TextChoices):
 
 
 class User(AbstractUser):
-    "Класс переопределяет и расширяет стандартную модель User."
-
-    USERNAME_ERR_MESS = (
-        "Содержание поля 'username' не соответствует "
-        "паттерну '^[\\w.@+-]+\\z'"
-    )
-
+    "Класс переопределяет стандартную модель User."
     username = models.CharField(
         max_length=150,
         blank=False,
         unique=True,
-        validators=[
-            RegexValidator(
-                regex=r"^[\w.@+-]+\Z",
-                message=USERNAME_ERR_MESS,
-            )
-        ],
     )
     email = models.EmailField(
         blank=False,
@@ -56,18 +44,6 @@ class User(AbstractUser):
         choices=RoleChoices.choices,
         default=RoleChoices.USER,
     )
-
-    @property
-    def is_moderator(self):
-        if self.role == RoleChoices.MODERATOR or self.is_staff:
-            return True
-        return False
-
-    @property
-    def is_admin(self):
-        if self.role == RoleChoices.ADMIN or self.is_staff:
-            return True
-        return False
 
 
 class Tag(models.Model):

@@ -3,6 +3,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 print(BASE_DIR)
 
@@ -28,7 +29,7 @@ INSTALLED_APPS = [
     'djoser',
     'backend',
 ]
-
+AUTH_USER_MODEL = 'backend.User'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -63,7 +64,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 
-'''DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
@@ -73,8 +74,8 @@ WSGI_APPLICATION = 'backend.wsgi.application'
         'PORT': '5432',
     }
 }
-'''
 
+'''
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
@@ -84,7 +85,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', default='db'),
         'PORT': os.getenv('DB_PORT', default='5432')
     }
-}
+}'''
 # Password validation
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -142,5 +143,5 @@ DJOSER = {
     'USERNAME_RESET_CONFIRM_URL': '#/users/set/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': False,
-    'SERIALIZERS': {'user': 'backend.backend.serializers.UserSerializer'},
+    'SERIALIZERS': {},
 }
