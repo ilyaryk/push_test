@@ -82,7 +82,8 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('first_name', 'last_name', 'username', 'email', 'password', )
+        fields = ('first_name', 'last_name', 'username', 'email', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
         model = User
 
 
@@ -94,16 +95,16 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 
 class GetJWTTokenSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True)
-    confirmation_code = serializers.CharField(required=True)
+    email = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
 
     def validate(self, data):
         if not User.objects.filter(email=data.get("email")).exists():
             raise NotFound("Ошибка: не верный email")
         if not User.objects.filter(
-            password=data.get("confirmation_code")
+            password=data.get("password")
         ).exists():
             raise serializers.ValidationError(
-                "Ошибка: не верный confirmation_code"
+                "Ошибка: не верный password"
             )
         return data

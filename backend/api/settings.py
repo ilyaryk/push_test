@@ -75,8 +75,8 @@ DATABASES = {
     }
 }
 
-'''
-DATABASES = {
+
+'''DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
         'NAME': os.getenv('DB_NAME', default='postgres'),
@@ -112,10 +112,12 @@ REST_FRAMEWORK = {
 
     ],
     'PAGE_SIZE': 10,
+    'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 # Internationalization
