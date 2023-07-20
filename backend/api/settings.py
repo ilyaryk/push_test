@@ -75,8 +75,8 @@ DATABASES = {
     }
 }
 
-
-'''DATABASES = {
+'''
+DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
         'NAME': os.getenv('DB_NAME', default='postgres'),
@@ -112,7 +112,7 @@ REST_FRAMEWORK = {
 
     ],
     'PAGE_SIZE': 10,
-    'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
 }
 
 SIMPLE_JWT = {

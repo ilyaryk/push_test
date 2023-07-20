@@ -65,13 +65,18 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE, related_name='author')
+
+
+'''class Recipe(models.Model):
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE, related_name='author')
     name = models.CharField(max_length=200)
     image = models.ImageField(
         upload_to='static/', null=True, blank=True)
     text = models.TextField()
     cooking_time = models.IntegerField()
-    ingredients = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    tags = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    ingredients = models.ManyToManyField(Ingredient)
+    tags = models.ManyToManyField(Tag)
 
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
@@ -80,9 +85,14 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name[:15]
-
+'''
 
 class Favorite(models.Model):
+    class Meta:
+        db_table = 'api_favorite'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recipe'],
+                                    name='unique_favorite')]
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE, related_name='fan')
     recipe = models.ForeignKey(Recipe,

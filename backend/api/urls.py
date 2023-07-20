@@ -6,23 +6,23 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .views import RecipeViewSet, TagViewSet, FavoriteViewSet, \
-    FollowViewSet, CartViewSet, UserViewSet, IngredientViewSet, SignUpApiView, GetJWTTokenView, DeleteJWTTokenView
+from .views import RecipeViewSet, TagViewSet, \
+    FollowViewSet, CartViewSet, UserViewSet, IngredientViewSet, GetJWTTokenView, DeleteJWTTokenView
 
 
 router = DefaultRouter()
 router.register('recipes', RecipeViewSet, basename='recipes')
 router.register('tags', TagViewSet, basename='tags')
 router.register('follow', FollowViewSet, basename='follow')
-router.register('favorite', FavoriteViewSet, basename='favorite')
+#router.register('favorite', FavoriteViewSet, basename='favorite')
 router.register('cart', CartViewSet, basename='cart')
-router.register('ingredient', IngredientViewSet, basename='ingredient')
+router.register('ingredients', IngredientViewSet, basename='ingredients')
 router.register('users', UserViewSet, basename='users')
 
 
 urlpatterns = [
-    path("api/auth/token/login", GetJWTTokenView.as_view()),
-    path("api/auth/token/logout", DeleteJWTTokenView.as_view()),
+    path("api/auth/token/login/", GetJWTTokenView.as_view()),
+    path("api/auth/token/logout/", DeleteJWTTokenView.as_view()),
     path('api/', include(router.urls)),
     path('api/', include('djoser.urls')),
     path('api/', include('djoser.urls.jwt'))

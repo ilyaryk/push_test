@@ -9,7 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 
-from .pagination import CustomPagination
+from .pagination import CustomPagination#, RecipePagination
 from .models import Recipe, Tag, Favorite, Follow, Cart, Ingredient, User
 from .permissions import IsAuthorOrReadOnly
 from .serializers import RecipeSerializer, FavoriteSerializer, TagSerializer,\
@@ -27,6 +27,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    def get_queryset(self):
+        data = Recipe.objects.all()
+        if self.request.GET.get('is_favorited'):
+            data = data.filter(fav__fav__user=self.request.user)
+            print(data)
+        return Response(data)
+
+
+
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
@@ -36,7 +45,7 @@ class TagViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
 
 
-class FavoriteViewSet(viewsets.ModelViewSet):
+'''class FavoriteViewSet(viewsets.ModelViewSet):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
     permission_classes = (permissions.IsAuthenticated,
@@ -47,7 +56,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
-        return self.request.user.fan.all()
+        return self.request.user.fan.all()'''
 
 
 class FollowViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
@@ -84,6 +93,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    pagination_class = CustomPagination
 
     @action(detail=False, url_path='me', methods=('get',), permission_classes=(IsAuthenticated,))
     def me(self, request):
