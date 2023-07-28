@@ -17,9 +17,9 @@ from .pagination import CustomPagination
 from .models import Recipe, Tag, Favorite, Follow, Cart, Ingredient, User
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
-        RecipeSerializer, TagSerializer,
-        FollowSerializer, CartSerializer, IngredientSerializer,
-        UserSerializer, SignUpSerializer, GetJWTTokenSerializer)
+    RecipeSerializer, TagSerializer,
+    FollowSerializer, CartSerializer, IngredientSerializer,
+    UserSerializer, SignUpSerializer, GetJWTTokenSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -155,7 +155,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = CustomPagination
 
-    @action(detail=False, url_path='me', methods=('get',), permission_classes=(IsAuthenticated,))
+    @action(detail=False, url_path='me', methods=('get',),
+            permission_classes=(IsAuthenticated,))
     def me(self, request):
         serializer = self.get_serializer(
             request.user, data=request.data, partial=True

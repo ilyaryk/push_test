@@ -1,10 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
-from rest_framework.validators import UniqueValidator
 from rest_framework.exceptions import NotFound
-from django.core.exceptions import ValidationError as PasswordValidationError
-from django.contrib.auth.password_validation import validate_password
 
 from .models import Recipe, Tag, Favorite, Follow, User, Cart, Ingredient
 
