@@ -8,7 +8,12 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
-
+from django_filters.rest_framework import DjangoFilterBackend
+from django.http import FileResponse
+import io
+from reportlab.lib.units import inch
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from .pagination import CustomPagination#, RecipePagination
 from .models import Recipe, Tag, Favorite, Follow, Cart, Ingredient, User
 from .permissions import IsAuthorOrReadOnly
@@ -29,12 +34,72 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         data = Recipe.objects.all()
-        if self.request.GET.get('is_favorited'):
-            data = data.filter(fav__fav__user=self.request.user)
-            print(data)
-        return Response(data)
+        if self.request.GET.get('is_favorited') == "1":
+            print(self.request.GET.get('is_favorited'))
+            data = data.filter(fav__user=self.request.user)
+        if self.request.GET.get('is_in_shopping_cart') == "1":
+            data = data.filter(item__user=self.request.user)
+        if self.request.GET.get('author'):
+            data = data.filter(author__id=self.request.GET.get('author'))
+        if self.request.GET.get('tags'):
+            data = data.filter(tags__in=[self.request.GET.get('tags')])
+        return (data)
 
+    @action(detail=True, url_path='favorite', methods=('post', 'delete'),
+            permission_classes=(permissions.IsAuthenticated,))
+    def favorite(self, request, pk):
+            if request.method == "POST":
+                if Favorite.objects.filter(user=request.user, recipe=get_object_or_404(Recipe, id=pk)).exists():
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                Favorite.objects.create(user=request.user, recipe=get_object_or_404(Recipe, id=pk)
+                )
+                return Response(status=status.HTTP_201_CREATED)
+            else:
+                if not Favorite.objects.filter(user=request.user, recipe=get_object_or_404(Recipe, id=pk)).exists():
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                Favorite.objects.filter(user=request.user, recipe=get_object_or_404(Recipe, id=pk)
+                ).delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, url_path='shopping_cart', methods=('post', 'delete'),
+            permission_classes=(permissions.IsAuthenticated,))
+    def favorite(self, request, pk):
+            if request.method == "POST":
+                if Cart.objects.filter(user=request.user, item=get_object_or_404(Recipe, id=pk)).exists():
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                Cart.objects.create(user=request.user, item=get_object_or_404(Recipe, id=pk)
+                )
+                return Response(status=status.HTTP_201_CREATED)
+            else:
+                if not Cart.objects.filter(user=request.user, item=get_object_or_404(Recipe, id=pk)).exists():
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                Cart.objects.filter(user=request.user, recipe=get_object_or_404(Recipe, id=pk)
+                ).delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, url_path='download_shopping_cart', methods=('get',),
+            permission_classes=(permissions.IsAuthenticated,))
+    def download(self, request):
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
+        textob = p.beginText()
+        textob.setTextOrigin(inch, inch)
+        textob.setFont("Helvetica", 14)
+        recipies = Recipe.objects.filter(item__user=self.request.user)
+        lines = []
+        for recipe in recipies:
+            ingredients = recipe.ingredients.all()
+            for ingredient in ingredients:
+                lines.append(ingredient.__str__())
+        lines = set(lines)
+        for line in lines:
+            textob.textLine(line)
+        p.drawText(textob)
+        p.showPage()
+        p.save()
+        buffer.seek(0)
+
+        return FileResponse(buffer, as_attachment=True, filename="venue.pdf")
 
 
 class TagViewSet(viewsets.ModelViewSet):

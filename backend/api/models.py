@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
-
+from django.utils import timezone
 
 # User = get_user_model()
 class RoleChoices(models.TextChoices):
@@ -57,35 +57,37 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=100)
+    measurement_unit = models.CharField(default='кг', max_length=100)
 
     def __str__(self):
         return self.name[:15]
 
 
-class Recipe(models.Model):
-    author = models.ForeignKey(User,
-                               on_delete=models.CASCADE, related_name='author')
-
-
 '''class Recipe(models.Model):
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE, related_name='author')
-    name = models.CharField(max_length=200)
+    tags = models.ManyToManyField(Tag, related_name='tags')
+
+'''
+class Recipe(models.Model):
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE, related_name='author')
+    name = models.CharField(max_length=200, default='a')
     image = models.ImageField(
         upload_to='static/', null=True, blank=True)
-    text = models.TextField()
-    cooking_time = models.IntegerField()
-    ingredients = models.ManyToManyField(Ingredient)
-    tags = models.ManyToManyField(Tag)
+    text = models.TextField(default='default')
+    cooking_time = models.IntegerField(default=100)
+    ingredients = models.ManyToManyField(Ingredient, related_name='ingredients')
+    tags = models.ManyToManyField(Tag, related_name='tags')
 
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    pub_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ('pub_date',)
 
     def __str__(self):
         return self.name[:15]
-'''
+
 
 class Favorite(models.Model):
     class Meta:
