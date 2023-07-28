@@ -1,20 +1,16 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-
-from .views import RecipeViewSet, TagViewSet, \
-    FollowViewSet, CartViewSet, UserViewSet, IngredientViewSet, GetJWTTokenView, DeleteJWTTokenView
+from .views import (
+    RecipeViewSet, TagViewSet,
+    FollowViewSet, CartViewSet, UserViewSet,
+    IngredientViewSet, GetJWTTokenView, DeleteJWTTokenView)
 
 
 router = DefaultRouter()
 router.register('recipes', RecipeViewSet, basename='recipes')
 router.register('tags', TagViewSet, basename='tags')
 router.register('follow', FollowViewSet, basename='follow')
-#router.register('favorite', FavoriteViewSet, basename='favorite')
 router.register('cart', CartViewSet, basename='cart')
 router.register('ingredients', IngredientViewSet, basename='ingredients')
 router.register('users', UserViewSet, basename='users')

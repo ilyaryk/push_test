@@ -1,10 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
 from django.db import models
-from django.utils import timezone
 
-# User = get_user_model()
+
 class RoleChoices(models.TextChoices):
     USER = "user"
     MODERATOR = "moderator"
@@ -63,12 +61,6 @@ class Ingredient(models.Model):
         return self.name[:15]
 
 
-'''class Recipe(models.Model):
-    author = models.ForeignKey(User,
-                               on_delete=models.CASCADE, related_name='author')
-    tags = models.ManyToManyField(Tag, related_name='tags')
-
-'''
 class Recipe(models.Model):
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE, related_name='author')
@@ -77,7 +69,8 @@ class Recipe(models.Model):
         upload_to='static/', null=True, blank=True)
     text = models.TextField(default='default')
     cooking_time = models.IntegerField(default=100)
-    ingredients = models.ManyToManyField(Ingredient, related_name='ingredients')
+    ingredients = models.ManyToManyField(Ingredient,
+                                         related_name='ingredients')
     tags = models.ManyToManyField(Tag, related_name='tags')
 
     pub_date = models.DateTimeField(auto_now_add=True)

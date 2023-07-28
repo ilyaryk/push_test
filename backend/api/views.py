@@ -1,25 +1,25 @@
+import io
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status, views
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework import filters, status, views, viewsets
 from rest_framework.response import Response
 from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
-from django_filters.rest_framework import DjangoFilterBackend
 from django.http import FileResponse
-import io
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from .pagination import CustomPagination#, RecipePagination
+
+from .pagination import CustomPagination
 from .models import Recipe, Tag, Favorite, Follow, Cart, Ingredient, User
 from .permissions import IsAuthorOrReadOnly
-from .serializers import RecipeSerializer, FavoriteSerializer, TagSerializer,\
-        FollowSerializer, CartSerializer, IngredientSerializer, UserSerializer, \
-        SignUpSerializer, GetJWTTokenSerializer
+from .serializers import (
+        RecipeSerializer, TagSerializer,
+        FollowSerializer, CartSerializer, IngredientSerializer,
+        UserSerializer, SignUpSerializer, GetJWTTokenSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -35,7 +35,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         data = Recipe.objects.all()
         if self.request.GET.get('is_favorited') == "1":
-            print(self.request.GET.get('is_favorited'))
             data = data.filter(fav__user=self.request.user)
         if self.request.GET.get('is_in_shopping_cart') == "1":
             data = data.filter(item__user=self.request.user)
@@ -48,34 +47,44 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, url_path='favorite', methods=('post', 'delete'),
             permission_classes=(permissions.IsAuthenticated,))
     def favorite(self, request, pk):
-            if request.method == "POST":
-                if Favorite.objects.filter(user=request.user, recipe=get_object_or_404(Recipe, id=pk)).exists():
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
-                Favorite.objects.create(user=request.user, recipe=get_object_or_404(Recipe, id=pk)
-                )
-                return Response(status=status.HTTP_201_CREATED)
-            else:
-                if not Favorite.objects.filter(user=request.user, recipe=get_object_or_404(Recipe, id=pk)).exists():
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
-                Favorite.objects.filter(user=request.user, recipe=get_object_or_404(Recipe, id=pk)
-                ).delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
+        if request.method == "POST":
+            if Favorite.objects.filter(user=request.user,
+                                       recipe=get_object_or_404(Recipe, id=pk)
+                                       ).exists():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            Favorite.objects.create(user=request.user,
+                                    recipe=get_object_or_404(Recipe, id=pk)
+                                    )
+            return Response(status=status.HTTP_201_CREATED)
+        if not Favorite.objects.filter(user=request.user,
+                                       recipe=get_object_or_404(Recipe, id=pk)
+                                       ).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        Favorite.objects.filter(user=request.user,
+                                recipe=get_object_or_404(Recipe, id=pk)
+                                ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, url_path='shopping_cart', methods=('post', 'delete'),
             permission_classes=(permissions.IsAuthenticated,))
-    def favorite(self, request, pk):
-            if request.method == "POST":
-                if Cart.objects.filter(user=request.user, item=get_object_or_404(Recipe, id=pk)).exists():
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
-                Cart.objects.create(user=request.user, item=get_object_or_404(Recipe, id=pk)
-                )
-                return Response(status=status.HTTP_201_CREATED)
-            else:
-                if not Cart.objects.filter(user=request.user, item=get_object_or_404(Recipe, id=pk)).exists():
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
-                Cart.objects.filter(user=request.user, recipe=get_object_or_404(Recipe, id=pk)
-                ).delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
+    def shopping_cart(self, request, pk):
+        if request.method == "POST":
+            if Cart.objects.filter(user=request.user,
+                                   item=get_object_or_404(Recipe, id=pk)
+                                   ).exists():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            Cart.objects.create(user=request.user,
+                                item=get_object_or_404(Recipe, id=pk)
+                                )
+            return Response(status=status.HTTP_201_CREATED)
+        if not Cart.objects.filter(user=request.user,
+                                   item=get_object_or_404(Recipe, id=pk)
+                                   ).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        Cart.objects.filter(user=request.user,
+                            recipe=get_object_or_404(Recipe, id=pk)
+                            ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, url_path='download_shopping_cart', methods=('get',),
             permission_classes=(permissions.IsAuthenticated,))
@@ -108,20 +117,6 @@ class TagViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsAuthorOrReadOnly)
     pagination_class = LimitOffsetPagination
-
-
-'''class FavoriteViewSet(viewsets.ModelViewSet):
-    queryset = Favorite.objects.all()
-    serializer_class = FavoriteSerializer
-    permission_classes = (permissions.IsAuthenticated,
-                          IsAuthorOrReadOnly)
-    pagination_class = LimitOffsetPagination
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def get_queryset(self):
-        return self.request.user.fan.all()'''
 
 
 class FollowViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
@@ -183,18 +178,14 @@ class UserViewSet(viewsets.ModelViewSet):
                 return Response({'detail': 'Уже подписаны!'},
                                 status=status.HTTP_400_BAD_REQUEST)
             Follow.objects.create(user=user, following=following).save()
-            '''serializer = UserSerializer(
-                following, context={'request': request},
-                data={'username': following.username, 'email': following.email,
-                      'first_name': following.first_name, 'last_name': following.last_name},
-                       partial=True)
-            serializer.is_valid(raise_exception=True)'''
             data1 = {
                 'id': following.id,
-                'is_subscribed': Follow.objects.filter(user=user,
+                'is_subscribed': Follow.objects.filter(
+                    user=user,
                     following=following).exists(),
                 'recipies': Recipe.objects.filter(author=following),
-                'recipies_count': (Recipe.objects.filter(author=following).count())
+                'recipies_count':
+                    (Recipe.objects.filter(author=following).count())
             }
             data = UserSerializer(following).data
             data.update(data1)
