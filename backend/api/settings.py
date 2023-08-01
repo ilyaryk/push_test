@@ -24,14 +24,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sessions',
-    'rest_framework_simplejwt.authentication.JWTAuthentication',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
     'rest_framework',
     'djoser',
     'api',
-    'rest_framework.authentication.SessionAuthentication',
-    'rest_framework.authentication.BasicAuthentication'
 ]
 AUTH_USER_MODEL = 'api.User'
 MIDDLEWARE = [
@@ -68,8 +64,8 @@ WSGI_APPLICATION = 'api.wsgi.application'
 
 
 # Database
-'''
-DATABASES = {
+
+'''DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
@@ -78,8 +74,8 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
     }
-}'''
-
+}
+'''
 
 DATABASES = {
     'default': {

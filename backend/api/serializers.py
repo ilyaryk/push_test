@@ -8,15 +8,21 @@ from .models import Recipe, Tag, Favorite, Follow, User, Cart, Ingredient
 
 class RecipeSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
+    ingredients = serializers.StringRelatedField(many=True, read_only=True)
+    tags = serializers.SlugRelatedField(many=True, read_only=True,
+                                        slug_field='tags')
 
     class Meta:
-        fields = '__all__'
+        fields = ('author', 'name', 'image', 'text', 'cooking_time',
+                  'ingredients', 'tags', 'pub_date')
         model = Recipe
 
 
 class TagSerializer(serializers.ModelSerializer):
+    recipe = serializers.StringRelatedField(many=True)
+
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'color', 'slug', 'recipe')
         model = Tag
 
 
@@ -72,8 +78,10 @@ class CartSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    recipe = serializers.StringRelatedField(many=True)
+
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'measurement_unit', 'recipe')
         model = Ingredient
 
 
