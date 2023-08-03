@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 
-from api.models import User
+from users.models import User
 
 
 class Recipe(models.Model):
@@ -50,3 +50,29 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name[:15]
+
+
+class Favorite(models.Model):
+    class Meta:
+        db_table = 'api_favorite'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recipe'],
+                                    name='unique_favorite')]
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE, related_name='fan')
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE, related_name='fav')
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='follower')
+    following = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='following')
+
+
+class Cart(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='buyer')
+    item = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name='item')

@@ -3,9 +3,10 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     TagViewSet,
-    FollowViewSet, CartViewSet, UserViewSet,
+    FollowViewSet, CartViewSet,
     IngredientViewSet, GetJWTTokenView, DeleteJWTTokenView)
 from recipes.views import RecipeViewSet
+from users.views import UserViewSet
 
 router = DefaultRouter()
 router.register('recipes', RecipeViewSet, basename='recipes')

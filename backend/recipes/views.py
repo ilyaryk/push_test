@@ -9,9 +9,9 @@ from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from .models import Recipe
-from api.models import Favorite, Cart
+from recipes.models import Favorite, Cart
 from api.permissions import IsAuthorOrReadOnly
-from api.serializers import RecipeSerializer
+from .serializers import RecipeSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
