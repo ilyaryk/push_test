@@ -3,7 +3,8 @@ from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.exceptions import NotFound
 
-from .models import Recipe, Tag, Favorite, Follow, User, Cart, Ingredient
+from .models import Favorite, Follow, User, Cart
+from recipes.models import Recipe, Ingredient, Tag
 
 
 class RecipeSerializer(serializers.ModelSerializer):
