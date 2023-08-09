@@ -137,13 +137,13 @@ class AmountOfIngredients(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
-        related_name='recipes',
+        related_name='recipes'
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
         verbose_name='Список ингредиентов',
-        related_name='ingredient',
+        related_name='ingredient'
     )
     amount = models.PositiveSmallIntegerField(
         default=1,
@@ -151,18 +151,18 @@ class AmountOfIngredients(models.Model):
         validators=[
             MinValueValidator(
                 1, message='Количество не может быть меньше 1 единицы!')
-        ],
+        ]
     )
 
     class Meta:
         verbose_name = 'Ингредиент'
-        verbose_name_plural = 'Количество ингредиентов'
-        '''constraints = [
+        verbose_name_plural = 'Количество ингридиентов'
+        constraints = [
             models.UniqueConstraint(
                 fields=['ingredient', 'recipe'],
                 name='unique_ingredient_in_recipe'
             )
-        ]'''
+        ]
 
     def __str__(self):
         return f'{self.ingredient}, {self.amount}'

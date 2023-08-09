@@ -28,9 +28,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+        return Response(status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        print('__tut_______')
         data = Recipe.objects.all()
         print(data.first().ingredients)
         if self.request.GET.get('is_favorited') == "1":
