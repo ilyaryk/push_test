@@ -66,20 +66,20 @@ class Recipe(models.Model):
         verbose_name='Название',
         max_length=200
     )
- #   image = models.ImageField(
-    #    verbose_name='Изображение',
-    #    upload_to='recipes/',
-    #    null=True,
-    #    default=None
-   # )
+    '''image = models.ImageField(
+        verbose_name='Изображение',
+        upload_to='recipes/',
+        null=True,
+        default=None
+    )'''
     text = models.TextField(
         verbose_name='Описание рецепта'
     )
-    '''ingredients = models. .ManyToManyField(
+    ingredients = models.ManyToManyField(
         Ingredient,
         through='AmountOfIngredients',
         verbose_name='Список ингредиентов',
-    )'''
+    )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Тэги',
@@ -159,7 +159,7 @@ class AmountOfIngredients(models.Model):
         verbose_name_plural = 'Количество ингредиентов'
         '''constraints = [
             models.UniqueConstraint(
-                fields=['ingredient', 'amount'],
+                fields=['ingredient', 'recipe'],
                 name='unique_ingredient_in_recipe'
             )
         ]'''

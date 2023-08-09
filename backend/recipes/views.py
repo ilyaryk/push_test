@@ -12,8 +12,7 @@ from .models import Recipe
 from recipes.models import Favorite, Cart
 from api.permissions import IsAuthorOrReadOnly
 from .serializers import (RecipeCreateOrUpdateSerializer,
-                          RecipeReadOnlySerializer,
-                          IngredientsCreateOrUpdateSerializer)
+                          RecipeReadOnlySerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -28,17 +27,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeCreateOrUpdateSerializer
 
     def perform_create(self, serializer):
-        serializer = IngredientsCreateOrUpdateSerializer
-        for i in self.request.POST.get('ingredients'):
-            print(i)
-            serializer.save(id=i.id,
-                            amount=i.amount)
-        serializer = RecipeCreateOrUpdateSerializer
         serializer.save(author=self.request.user)
 
     def get_queryset(self):
         print('__tut_______')
         data = Recipe.objects.all()
+        print(data.first().ingredients)
         if self.request.GET.get('is_favorited') == "1":
             data = data.filter(fav__user=self.request.user)
         if self.request.GET.get('is_in_shopping_cart') == "1":
