@@ -67,7 +67,7 @@ WSGI_APPLICATION = 'api.wsgi.application'
 
 # Database
 
-'''DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
@@ -76,10 +76,10 @@ WSGI_APPLICATION = 'api.wsgi.application'
         'HOST': 'localhost',
         'PORT': '5432',
     }
-}'''
+}
 
 
-DATABASES = {
+'''DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
         'NAME': os.getenv('DB_NAME', default='postgres'),
@@ -88,7 +88,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', default='db'),
         'PORT': os.getenv('DB_PORT', default='5432')
     }
-}
+}'''
 # Password validation
 
 AUTH_PASSWORD_VALIDATORS = [

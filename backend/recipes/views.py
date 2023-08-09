@@ -11,20 +11,33 @@ from reportlab.pdfgen import canvas
 from .models import Recipe
 from recipes.models import Favorite, Cart
 from api.permissions import IsAuthorOrReadOnly
-from .serializers import RecipeSerializer
+from .serializers import (RecipeCreateOrUpdateSerializer,
+                          RecipeReadOnlySerializer,
+                          IngredientsCreateOrUpdateSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsAuthorOrReadOnly)
     pagination_class = LimitOffsetPagination
 
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return RecipeReadOnlySerializer
+        return RecipeCreateOrUpdateSerializer
+
     def perform_create(self, serializer):
+        serializer = IngredientsCreateOrUpdateSerializer
+        for i in self.request.POST.get('ingredients'):
+            print(i)
+            serializer.save(id=i.id,
+                            amount=i.amount)
+        serializer = RecipeCreateOrUpdateSerializer
         serializer.save(author=self.request.user)
 
     def get_queryset(self):
+        print('__tut_______')
         data = Recipe.objects.all()
         if self.request.GET.get('is_favorited') == "1":
             data = data.filter(fav__user=self.request.user)
