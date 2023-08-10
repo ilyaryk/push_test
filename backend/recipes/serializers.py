@@ -108,11 +108,10 @@ class IngredientsReadOnlySerializer(serializers.ModelSerializer):
 class RecipeReadOnlySerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
-   # ingredients = IngredientsReadOnlySerializer(many=True)
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-  #  image = Base64ImageField()
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
@@ -124,7 +123,7 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
             'is_favorited',
             'is_in_shopping_cart',
             'name',
-#            'image',
+            'image',
             'text',
             'cooking_time',
         )
@@ -153,7 +152,7 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
     ingredients = IngredientsCreateOrUpdateSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                               many=True)
- #   image = Base64ImageField()
+    image = Base64ImageField()
     cooking_time = serializers.IntegerField(
         validators=(MinValueValidator(1),)
     )
@@ -165,7 +164,7 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
             'author',
             'ingredients',
             'tags',
-        #    'image',
+            'image',
             'name',
             'text',
             'cooking_time',
@@ -198,7 +197,6 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
         return cooking_time
 
     def create_ingredients_amounts(self, ingredients, recipe):
-        print('__________HR___________')
         for ingredient in ingredients:
             recipe.ingredients.add(ingredient['id'])
             ma = AmountOfIngredients.objects.get(recipe=recipe,
@@ -227,4 +225,5 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def to_representation(self, data):
-        return RecipeReadOnlySerializer(context=self.context).to_representation(data)
+        return RecipeReadOnlySerializer(
+            context=self.context).to_representation(data)
