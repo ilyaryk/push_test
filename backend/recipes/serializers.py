@@ -3,7 +3,6 @@ from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 from django.core.validators import MinValueValidator
 from drf_extra_fields.fields import Base64ImageField
-from django.shortcuts import get_object_or_404
 
 from .models import Favorite, Follow, User, Cart
 from users.serializers import UserSerializer
