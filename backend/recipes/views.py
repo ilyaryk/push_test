@@ -10,7 +10,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from .models import Recipe
 from recipes.models import Favorite, Cart
-from api.permissions import IsAuthorOrReadOnly
+from assistance.permissions import IsAuthorOrReadOnly
 from .serializers import (RecipeCreateOrUpdateSerializer,
                           RecipeReadOnlySerializer)
 

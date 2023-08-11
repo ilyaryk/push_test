@@ -9,11 +9,11 @@ from rest_framework.permissions import AllowAny
 
 from recipes.models import Follow, Cart, User
 from recipes.models import Ingredient, Tag
-from .permissions import IsAuthorOrReadOnly
+from assistance.permissions import IsAuthorOrReadOnly
 from recipes.serializers import (
     TagSerializer,
     FollowSerializer, CartSerializer, IngredientSerializer)
-from .serializers import SignUpSerializer, GetJWTTokenSerializer
+from assistance.serializers import SignUpSerializer, GetJWTTokenSerializer
 
 
 class TagViewSet(viewsets.ModelViewSet):

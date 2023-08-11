@@ -29,7 +29,8 @@ INSTALLED_APPS = [
     'djoser',
     'api',
     'recipes',
-    'users'
+    'users',
+    'assistance'
 ]
 AUTH_USER_MODEL = 'users.User'
 MIDDLEWARE = [
