@@ -30,7 +30,8 @@ INSTALLED_APPS = [
     'api',
     'recipes',
     'users',
-    'assistance'
+    'assistance',
+    'foodgram'
 ]
 AUTH_USER_MODEL = 'users.User'
 MIDDLEWARE = [
@@ -63,7 +64,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'api.wsgi.application'
+WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 
 # Database
