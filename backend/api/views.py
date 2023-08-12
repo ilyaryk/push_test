@@ -3,12 +3,9 @@ from rest_framework import viewsets, permissions, status, views
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.mixins import ListModelMixin, CreateModelMixin
-from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import AllowAny
 
-from recipes.models import Follow, Cart, User
-from recipes.models import Ingredient, Tag
+from recipes.models import Follow, Cart, User, Ingredient, Tag
 from assistance.permissions import IsAuthorOrReadOnly
 from recipes.serializers import (
     TagSerializer,
@@ -24,7 +21,7 @@ class TagViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
 
 
-class FollowViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
+class FollowViewSet(CreateModelMixin, ListModelMixin, viewsets.GenericViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
@@ -60,7 +57,7 @@ class SignUpApiView(views.APIView):
 
     queryset = User.objects.all()
     serializer_class = SignUpSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
         data = request.data
@@ -72,7 +69,7 @@ class SignUpApiView(views.APIView):
 
 
 class GetJWTTokenView(views.APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         serializer = GetJWTTokenSerializer(data=request.data)
@@ -90,7 +87,7 @@ class GetJWTTokenView(views.APIView):
 
 
 class DeleteJWTTokenView(views.APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         serializer = GetJWTTokenSerializer(data=request.data)

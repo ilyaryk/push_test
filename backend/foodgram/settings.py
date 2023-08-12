@@ -147,9 +147,14 @@ STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DJOSER = {
-    'PASSWORD_RESET_CONFIRM_URL': '#/users/set_password/{uid}/{token}',
-    'USERNAME_RESET_CONFIRM_URL': '#/users/set/{uid}/{token}',
-    'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': False,
-    'SERIALIZERS': {},
+    'SERIALIZERS': {
+        "user_create":
+            "users.serializers.UserSerializer",
+        "user": "users.serializers.UserSerializer",
+        "current_user": "users.serializers.UserSerializer",
+        "user_delete":
+            "users.serializers.UserSerializer",
+            'token_create': 'djoser.serializers.TokenCreateSerializer'},
+    'LOGIN_FIELD': 'email'
 }
