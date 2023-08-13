@@ -15,9 +15,6 @@ router.register('users', UserViewSet, basename='users')
 
 
 urlpatterns = [
-   # path("api/auth/token/login/", GetJWTTokenView.as_view()),
-    #path("api/auth/token/logout/", DeleteJWTTokenView.as_view()),
     path('api/', include(router.urls)),
-#    path('api/', include('djoser.urls')),
     path('api/auth/', include('djoser.urls.authtoken'))
 ]

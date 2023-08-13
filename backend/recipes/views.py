@@ -17,7 +17,7 @@ from .serializers import (RecipeCreateOrUpdateSerializer,
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = (#permissions.IsAuthenticatedOrReadOnly,
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsAuthorOrReadOnly)
     pagination_class = LimitOffsetPagination
 
