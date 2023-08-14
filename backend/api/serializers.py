@@ -4,9 +4,16 @@ from rest_framework.validators import UniqueTogetherValidator
 from django.core.validators import MinValueValidator
 from drf_extra_fields.fields import Base64ImageField
 
-from .models import Favorite, Follow, User, Cart
-from users.serializers import UserSerializer
-from recipes.models import Recipe, Ingredient, Tag, AmountOfIngredients
+from users.models import User
+from recipes.models import (Recipe, Ingredient, Tag,
+                            AmountOfIngredients, Favorite, Follow, Cart)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('first_name', 'last_name', 'username', 'email', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+        model = User
 
 
 class TagSerializer(serializers.ModelSerializer):

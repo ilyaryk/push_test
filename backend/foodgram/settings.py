@@ -143,11 +143,11 @@ DJOSER = {
     'SEND_ACTIVATION_EMAIL': False,
     'SERIALIZERS': {
         "user_create":
-            "users.serializers.UserSerializer",
-        "user": "users.serializers.UserSerializer",
-        "current_user": "users.serializers.UserSerializer",
+            "api.serializers.UserSerializer",
+        "user": "api.serializers.UserSerializer",
+        "current_user": "api.serializers.UserSerializer",
         "user_delete":
-            "users.serializers.UserSerializer",
+            "api.serializers.UserSerializer",
             'token_create': 'djoser.serializers.TokenCreateSerializer'},
     'LOGIN_FIELD': 'email'
 }
