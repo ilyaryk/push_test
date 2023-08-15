@@ -203,11 +203,12 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
         return cooking_time
 
     def create_ingredients_amounts(self, ingredients, recipe):
+        '''Создает смежную модель для хранения ингредиентов и их кол-ва'''
         for ingredient in ingredients:
             recipe.ingredients.add(ingredient['id'])
+            recipe.save()
             ma = AmountOfIngredients.objects.get(recipe=recipe,
                                                  ingredient=ingredient['id'])
-            print(type(ma))
             setattr(ma, 'amount', ingredient.get('amount'))
             ma.save()
 

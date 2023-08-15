@@ -107,15 +107,16 @@ class Recipe(models.Model):
 
 
 class Favorite(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE, related_name='fan')
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE, related_name='fav')
+
     class Meta:
         db_table = 'api_favorite'
         constraints = [
             models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique_favorite')]
-    user = models.ForeignKey(User,
-                             on_delete=models.CASCADE, related_name='fan')
-    recipe = models.ForeignKey(Recipe,
-                               on_delete=models.CASCADE, related_name='fav')
 
 
 class Follow(models.Model):
@@ -124,6 +125,12 @@ class Follow(models.Model):
     following = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='following')
 
+    class Meta:
+        db_table = 'api_follow'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'following'],
+                                    name='unique_follow')]
+
 
 class Cart(models.Model):
     user = models.ForeignKey(
@@ -131,8 +138,15 @@ class Cart(models.Model):
     item = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, related_name='item')
 
+    class Meta:
+        db_table = 'api_cart'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'item'],
+                                    name='unique_cart')]
+
 
 class AmountOfIngredients(models.Model):
+    '''Amount - единственное число'''
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,

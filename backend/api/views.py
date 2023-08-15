@@ -11,14 +11,15 @@ from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-from recipes.models import Recipe, Favorite, Cart, Ingredient, Tag, Follow
+from recipes.models import (Recipe, Favorite, Cart, Ingredient,
+                            Tag, Follow, AmountOfIngredients)
 from .serializers import (RecipeCreateOrUpdateSerializer,
                           RecipeReadOnlySerializer,
                           TagSerializer,
                           IngredientSerializer,
                           FollowSerializer,
                           UserSerializer)
-from assistance.permissions import IsAuthorOrReadOnly
+from .permissions import IsAuthorOrReadOnly
 from assistance.pagination import CustomPagination
 from users.models import User
 
@@ -47,12 +48,14 @@ class UserViewSet(viewsets.ModelViewSet):
         following = get_object_or_404(User, id=pk)
         change_subscription_status = Follow.objects.filter(
             user=user.id, following=following.id)
+        sub_status = change_subscription_status.exists()
         if request.method == 'POST':
-            if change_subscription_status.exists():
+            if sub_status:
                 return Response({'detail': 'Уже подписаны!'},
                                 status=status.HTTP_400_BAD_REQUEST)
             Follow.objects.create(user=user, following=following).save()
-            data1 = {
+            data = UserSerializer(following).data
+            data.update({
                 'id': following.id,
                 'is_subscribed': Follow.objects.filter(
                     user=user,
@@ -60,12 +63,10 @@ class UserViewSet(viewsets.ModelViewSet):
                 'recipies': Recipe.objects.filter(author=following),
                 'recipies_count':
                     (Recipe.objects.filter(author=following).count())
-            }
-            data = UserSerializer(following).data
-            data.update(data1)
+            })
             return Response(data,
                             status=status.HTTP_201_CREATED)
-        if change_subscription_status.exists():
+        if sub_status:
             change_subscription_status.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({'detail': 'Такой подписки нет'},
@@ -75,7 +76,7 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def subscriptions(self, request):
         queryset = Follow.objects.filter(user=request.user)
-        if queryset:
+        if queryset.exists():
             queryset_pag = self.paginate_queryset(queryset)
             serializer = FollowSerializer(
                 queryset_pag, context={'request': request}, many=True,)
@@ -97,11 +98,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-        return Response(status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
         data = Recipe.objects.all()
-        print(data.first().ingredients)
         if self.request.GET.get('is_favorited') == "1":
             data = data.filter(fav__user=self.request.user)
         if self.request.GET.get('is_in_shopping_cart') == "1":
@@ -116,42 +115,38 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def favorite(self, request, pk):
         if request.method == "POST":
-            if Favorite.objects.filter(user=request.user,
-                                       recipe=get_object_or_404(Recipe, id=pk)
-                                       ).exists():
+            fav_objects = Favorite.objects.filter(
+                user=request.user,
+                recipe=get_object_or_404(Recipe, id=pk)
+                )
+            if fav_objects.exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             Favorite.objects.create(user=request.user,
                                     recipe=get_object_or_404(Recipe, id=pk)
                                     )
             return Response(status=status.HTTP_201_CREATED)
-        if not Favorite.objects.filter(user=request.user,
-                                       recipe=get_object_or_404(Recipe, id=pk)
-                                       ).exists():
+        if not fav_objects.exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        Favorite.objects.filter(user=request.user,
-                                recipe=get_object_or_404(Recipe, id=pk)
-                                ).delete()
+        fav_objects.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, url_path='shopping_cart', methods=('post', 'delete'),
             permission_classes=(permissions.IsAuthenticated,))
     def shopping_cart(self, request, pk):
         if request.method == "POST":
-            if Cart.objects.filter(user=request.user,
-                                   item=get_object_or_404(Recipe, id=pk)
-                                   ).exists():
+            cart_objects = Cart.objects.filter(
+                user=request.user,
+                item=get_object_or_404(Recipe, id=pk)
+                )
+            if cart_objects.exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             Cart.objects.create(user=request.user,
                                 item=get_object_or_404(Recipe, id=pk)
                                 )
             return Response(status=status.HTTP_201_CREATED)
-        if not Cart.objects.filter(user=request.user,
-                                   item=get_object_or_404(Recipe, id=pk)
-                                   ).exists():
+        if not cart_objects.exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        Cart.objects.filter(user=request.user,
-                            recipe=get_object_or_404(Recipe, id=pk)
-                            ).delete()
+        cart_objects.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, url_path='download_shopping_cart', methods=('get',),
@@ -162,15 +157,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
         textob = p.beginText()
         textob.setTextOrigin(inch, inch)
         textob.setFont("Helvetica", 14)
-        recipies = Recipe.objects.filter(item__user=self.request.user)
-        lines = []
-        for recipe in recipies:
-            ingredients = recipe.ingredients.all()
-            for ingredient in ingredients:
-                lines.append(ingredient.__str__())
-        lines = set(lines)
-        for line in lines:
-            textob.textLine(line)
+        lines = {}
+        recipes = Recipe.objects.filter(item__user=self.request.user)
+        for recipe in recipes:
+            amounts = AmountOfIngredients.objects.filter(recipe=recipe)
+            for amount in amounts:
+                if lines.get(amount.ingredient.__str__()):
+                    lines[amount.ingredient.__str__()] = (
+                        lines.get(amount.ingredient.__str__()) + amount.amount)
+                else:
+                    lines[amount.ingredient.__str__()] = amount.amount
+        for line in lines.keys():
+            line_out = str(line) + str(lines[line])
+            textob.textLine(line_out)
         p.drawText(textob)
         p.showPage()
         p.save()
