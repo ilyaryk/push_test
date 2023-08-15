@@ -60,7 +60,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 
-# Database
 
 DATABASES = {
     'default': {
@@ -84,7 +83,7 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', default='5432')
     }
 }'''
-# Password validation
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -113,8 +112,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
 }
 
-# Internationalization
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -126,7 +123,6 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
 
 STATIC_URL = '/static/'
 
