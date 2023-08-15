@@ -117,8 +117,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == "POST":
             fav_objects = Favorite.objects.filter(
                 user=request.user,
-                recipe=get_object_or_404(Recipe, id=pk)
-                                                 )
+                recipe=get_object_or_404(Recipe, id=pk))
             if fav_objects.exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             Favorite.objects.create(user=request.user,
@@ -136,8 +135,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == "POST":
             cart_objects = Cart.objects.filter(
                 user=request.user,
-                item=get_object_or_404(Recipe, id=pk)
-                                              )
+                item=get_object_or_404(Recipe, id=pk))
             if cart_objects.exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             Cart.objects.create(user=request.user,
