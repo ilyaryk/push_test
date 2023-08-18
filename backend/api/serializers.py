@@ -114,7 +114,9 @@ class IngredientsReadOnlySerializer(serializers.ModelSerializer):
 class RecipeReadOnlySerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
-    ingredients = IngredientsReadOnlySerializer(many=True, source='amounts_of_ingredients')
+    ingredients = IngredientsReadOnlySerializer(
+        many=True,
+        source='amounts_of_ingredients')
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
