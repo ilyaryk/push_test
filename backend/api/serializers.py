@@ -114,7 +114,7 @@ class IngredientsReadOnlySerializer(serializers.ModelSerializer):
 class RecipeReadOnlySerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
-    ingredients = serializers.SerializerMethodField()
+    ingredients = IngredientsReadOnlySerializer(many=True, source='amounts_of_ingredients')
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
@@ -143,14 +143,6 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if not user.is_anonymous:
             return Cart.objects.filter(user=user, item=recipe).exists()
-
-    def get_ingredients(self, recipe):
-        data = AmountOfIngredients.objects.filter(recipe=recipe)
-        ingredients = []
-        for i in data:
-            data = IngredientsReadOnlySerializer(i).data
-            ingredients.append(data)
-        return ingredients
 
 
 class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
