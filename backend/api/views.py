@@ -29,12 +29,12 @@ from users.models import User
 def favorite_or_cart(self, model, id):
     if model == Favorite:
         objects = model.objects.filter(
-                user=self.request.user,
-                recipe=get_object_or_404(Recipe, id=id))
+            user=self.request.user,
+            recipe=get_object_or_404(Recipe, id=id))
     else:
         objects = model.objects.filter(
-                user=self.request.user,
-                item=get_object_or_404(Recipe, id=id))
+            user=self.request.user,
+            item=get_object_or_404(Recipe, id=id))
     fav_flag = objects.exists()
     if self.request.method == "POST":
         if fav_flag:
