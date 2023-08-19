@@ -7,21 +7,51 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from django.http import FileResponse
+from django.db.models import Sum
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 from recipes.models import (Recipe, Favorite, Cart, Ingredient,
-                            Tag, Follow, AmountOfIngredients)
+                            Tag, Follow)
 from .serializers import (RecipeCreateOrUpdateSerializer,
                           RecipeReadOnlySerializer,
                           TagSerializer,
                           IngredientSerializer,
                           FollowSerializer,
-                          UserSerializer)
+                          UserSerializer,
+                          UserReadOnlySerializer)
 from .permissions import IsAuthorOrReadOnly
 from assistance.pagination import CustomPagination
 from users.models import User
+
+
+def favorite_or_cart(self, model, id):
+    if model == Favorite:
+        objects = model.objects.filter(
+                user=self.request.user,
+                recipe=get_object_or_404(Recipe, id=id))
+    else:
+        objects = model.objects.filter(
+                user=self.request.user,
+                item=get_object_or_404(Recipe, id=id))
+    fav_flag = objects.exists()
+    if self.request.method == "POST":
+        if fav_flag:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if model == Cart:
+            model.objects.create(user=self.request.user,
+                                 item=get_object_or_404(Recipe, id=id)
+                                 )
+        else:
+            model.objects.create(user=self.request.user,
+                                 recipe=get_object_or_404(Recipe, id=id)
+                                 )
+        return Response(status=status.HTTP_201_CREATED)
+    if not fav_flag:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    objects.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -54,16 +84,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 return Response({'detail': 'Уже подписаны!'},
                                 status=status.HTTP_400_BAD_REQUEST)
             Follow.objects.create(user=user, following=following).save()
-            data = UserSerializer(following).data
-            data.update({
-                'id': following.id,
-                'is_subscribed': Follow.objects.filter(
-                    user=user,
-                    following=following).exists(),
-                'recipies': Recipe.objects.filter(author=following),
-                'recipies_count':
-                    (Recipe.objects.filter(author=following).count())
-            })
+            data = UserReadOnlySerializer(following,
+                                          context={'request': request}).data
             return Response(data,
                             status=status.HTTP_201_CREATED)
         if sub_status:
@@ -114,38 +136,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, url_path='favorite', methods=('post', 'delete'),
             permission_classes=(permissions.IsAuthenticated,))
     def favorite(self, request, pk):
-        if request.method == "POST":
-            fav_objects = Favorite.objects.filter(
-                user=request.user,
-                recipe=get_object_or_404(Recipe, id=pk))
-            if fav_objects.exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            Favorite.objects.create(user=request.user,
-                                    recipe=get_object_or_404(Recipe, id=pk)
-                                    )
-            return Response(status=status.HTTP_201_CREATED)
-        if not fav_objects.exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        fav_objects.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return favorite_or_cart(self, Favorite, pk)
 
     @action(detail=True, url_path='shopping_cart', methods=('post', 'delete'),
             permission_classes=(permissions.IsAuthenticated,))
     def shopping_cart(self, request, pk):
-        if request.method == "POST":
-            cart_objects = Cart.objects.filter(
-                user=request.user,
-                item=get_object_or_404(Recipe, id=pk))
-            if cart_objects.exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            Cart.objects.create(user=request.user,
-                                item=get_object_or_404(Recipe, id=pk)
-                                )
-            return Response(status=status.HTTP_201_CREATED)
-        if not cart_objects.exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        cart_objects.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return favorite_or_cart(self, Cart, pk)
 
     @action(detail=False, url_path='download_shopping_cart', methods=('get',),
             permission_classes=(permissions.IsAuthenticated,))
@@ -156,15 +152,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
         textob.setTextOrigin(inch, inch)
         textob.setFont("Helvetica", 14)
         lines = {}
-        recipes = Recipe.objects.filter(item__user=self.request.user)
-        for recipe in recipes:
-            amounts = AmountOfIngredients.objects.filter(recipe=recipe)
-            for amount in amounts:
-                if lines.get(amount.ingredient.__str__()):
-                    lines[amount.ingredient.__str__()] = (
-                        lines.get(amount.ingredient.__str__()) + amount.amount)
-                else:
-                    lines[amount.ingredient.__str__()] = amount.amount
+        carts = request.user.buyer.all()
+        ingredients = set(
+            [cart.item.amounts_of_ingredients.values_list('ingredient')
+                for cart in carts])
+        ingr_list = []
+        for i in ingredients:
+            ingr_list += (list(i))
+        ingr_list = set(ingr_list)
+        for ingredient in ingr_list:
+            ingredient = Ingredient.objects.get(id=ingredient[0])
+            lines[ingredient.__str__()] = ingredient.amounts.filter(
+                recipe__id__in=carts.values_list('item__id')).aggregate(
+                Sum('amount')).get('amount__sum')
         for line in lines.keys():
             line_out = str(line) + str(lines[line])
             textob.textLine(line_out)

@@ -3,10 +3,40 @@ from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 from django.core.validators import MinValueValidator
 from drf_extra_fields.fields import Base64ImageField
+from django.db.models import Count
 
 from users.models import User
 from recipes.models import (Recipe, Ingredient, Tag,
-                            AmountOfIngredients, Favorite, Follow, Cart)
+                            AmountOfIngredient, Favorite, Follow, Cart)
+
+
+class UserReadOnlySerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        )
+
+    def get_is_subscribed(self, user):
+        follower = self.context.get('request').user
+        return Follow.objects.filter(user=follower, following=user).exists()
+
+    def get_recipes(self, user):
+        return user.recipes.all()
+
+    def get_recipes_count(self, user):
+        return user.recipes.count()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -88,7 +118,7 @@ class IngredientsCreateOrUpdateSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = AmountOfIngredients
+        model = AmountOfIngredient
         fields = (
             'id',
             'amount',
@@ -102,7 +132,7 @@ class IngredientsReadOnlySerializer(serializers.ModelSerializer):
         source='ingredient.measurement_unit')
 
     class Meta:
-        model = AmountOfIngredients
+        model = AmountOfIngredient
         fields = (
             'id',
             'name',
@@ -119,7 +149,7 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
         source='amounts_of_ingredients')
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    image = Base64ImageField()
+   # image = Base64ImageField()
 
     class Meta:
         model = Recipe
@@ -131,7 +161,7 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
             'is_favorited',
             'is_in_shopping_cart',
             'name',
-            'image',
+          #  'image',
             'text',
             'cooking_time',
         )
@@ -152,7 +182,7 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
     ingredients = IngredientsCreateOrUpdateSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                               many=True)
-    image = Base64ImageField()
+  #  image = Base64ImageField()
     cooking_time = serializers.IntegerField(
         validators=(MinValueValidator(1),)
     )
@@ -164,7 +194,7 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
             'author',
             'ingredients',
             'tags',
-            'image',
+    #        'image',
             'name',
             'text',
             'cooking_time',
@@ -199,12 +229,12 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
     def create_ingredients_amounts(self, ingredients, recipe):
         '''Создает смежную модель для хранения ингредиентов и их кол-ва'''
         for ingredient in ingredients:
-            recipe.ingredients.add(ingredient['id'])
-            recipe.save()
-            ma = AmountOfIngredients.objects.get(recipe=recipe,
-                                                 ingredient=ingredient['id'])
-            setattr(ma, 'amount', ingredient.get('amount'))
-            ma.save()
+            amount = ingredient.get('amount')
+            ingredient = Ingredient.objects.get(id=ingredient['id'])
+            AmountOfIngredient.objects.get_or_create(
+                ingredient=ingredient,
+                recipe=recipe,
+                amount=amount)
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')

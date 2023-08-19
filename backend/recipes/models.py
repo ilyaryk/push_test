@@ -66,18 +66,18 @@ class Recipe(models.Model):
         verbose_name='Название',
         max_length=200
     )
-    image = models.ImageField(
+    '''image = models.ImageField(
         verbose_name='Изображение',
         upload_to='recipes/',
         null=True,
         default=None
-    )
+    )'''
     text = models.TextField(
         verbose_name='Описание рецепта'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        through='AmountOfIngredients',
+        through='AmountOfIngredient',
         verbose_name='Список ингредиентов',
     )
     tags = models.ManyToManyField(
@@ -145,7 +145,7 @@ class Cart(models.Model):
                                     name='unique_cart')]
 
 
-class AmountOfIngredients(models.Model):
+class AmountOfIngredient(models.Model):
     '''Amount - единственное число'''
     recipe = models.ForeignKey(
         Recipe,
