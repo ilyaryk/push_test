@@ -66,12 +66,12 @@ class Recipe(models.Model):
         verbose_name='Название',
         max_length=200
     )
-    image = models.ImageField(
+    '''image = models.ImageField(
         verbose_name='Изображение',
         upload_to='recipes/',
         null=True,
         default=None
-    )
+    )'''
     text = models.TextField(
         verbose_name='Описание рецепта'
     )
@@ -135,13 +135,13 @@ class Follow(models.Model):
 class Cart(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='buyer')
-    item = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='item')
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name='recipe')
 
     class Meta:
         db_table = 'api_cart'
         constraints = [
-            models.UniqueConstraint(fields=['user', 'item'],
+            models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique_cart')]
 
 

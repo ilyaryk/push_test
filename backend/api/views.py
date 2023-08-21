@@ -13,7 +13,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 from recipes.models import (Recipe, Favorite, Cart, Ingredient,
-                            Tag, Follow)
+                            Tag, Follow, AmountOfIngredient)
 from .serializers import (RecipeCreateOrUpdateSerializer,
                           RecipeReadOnlySerializer,
                           TagSerializer,
@@ -24,34 +24,7 @@ from .serializers import (RecipeCreateOrUpdateSerializer,
 from .permissions import IsAuthorOrReadOnly
 from assistance.pagination import CustomPagination
 from users.models import User
-
-
-def favorite_or_cart(self, model, id):
-    if model == Favorite:
-        objects = model.objects.filter(
-            user=self.request.user,
-            recipe=get_object_or_404(Recipe, id=id))
-    else:
-        objects = model.objects.filter(
-            user=self.request.user,
-            item=get_object_or_404(Recipe, id=id))
-    fav_flag = objects.exists()
-    if self.request.method == "POST":
-        if fav_flag:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        if model == Cart:
-            model.objects.create(user=self.request.user,
-                                 item=get_object_or_404(Recipe, id=id)
-                                 )
-        else:
-            model.objects.create(user=self.request.user,
-                                 recipe=get_object_or_404(Recipe, id=id)
-                                 )
-        return Response(status=status.HTTP_201_CREATED)
-    if not fav_flag:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    objects.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+from assistance.utils import favorite_or_cart
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -126,7 +99,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.GET.get('is_favorited') == "1":
             data = data.filter(fav__user=self.request.user)
         if self.request.GET.get('is_in_shopping_cart') == "1":
-            data = data.filter(item__user=self.request.user)
+            data = data.filter(recipe__user=self.request.user)
         if self.request.GET.get('author'):
             data = data.filter(author__id=self.request.GET.get('author'))
         if self.request.GET.get('tags'):
@@ -151,22 +124,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         textob = p.beginText()
         textob.setTextOrigin(inch, inch)
         textob.setFont("Helvetica", 14)
-        lines = {}
-        carts = request.user.buyer.all()
-        ingredients = set(
-            [cart.item.amounts_of_ingredients.values_list('ingredient')
-                for cart in carts])
-        ingr_list = []
-        for i in ingredients:
-            ingr_list += (list(i))
-        ingr_list = set(ingr_list)
-        for ingredient in ingr_list:
-            ingredient = Ingredient.objects.get(id=ingredient[0])
-            lines[ingredient.__str__()] = ingredient.amounts.filter(
-                recipe__id__in=carts.values_list('item__id')).aggregate(
-                Sum('amount')).get('amount__sum')
-        for line in lines.keys():
-            line_out = str(line) + str(lines[line])
+        ids = [i[0] for i in request.user.buyer.values_list('recipe')]
+        objs = (
+            AmountOfIngredient.objects.filter(
+                recipe__in=ids,)).select_related('recipes').values(
+                'ingredient__name',
+                'ingredient__measurement_unit',).annotate(amount=Sum('amount'))
+        for obj in objs:
+            line_out = (str(obj['ingredient__name'])
+                        + str(obj['ingredient__measurement_unit'])
+                        + str(obj['amount']))
             textob.textLine(line_out)
         p.drawText(textob)
         p.showPage()
