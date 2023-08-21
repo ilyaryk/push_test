@@ -148,7 +148,7 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
         source='amounts_of_ingredients')
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    #image = Base64ImageField()
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
@@ -160,7 +160,7 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
             'is_favorited',
             'is_in_shopping_cart',
             'name',
-            #'image',
+            'image',
             'text',
             'cooking_time',
         )
@@ -181,7 +181,7 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
     ingredients = IngredientsCreateOrUpdateSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                               many=True)
-    #image = Base64ImageField()
+    image = Base64ImageField()
     cooking_time = serializers.IntegerField(
         validators=(MinValueValidator(1),)
     )
@@ -193,7 +193,7 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
             'author',
             'ingredients',
             'tags',
-            #'image',
+            'image',
             'name',
             'text',
             'cooking_time',
