@@ -7,9 +7,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY',
                        default='p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs')
-DEBUG = os.getenv('DEBUG', default=True)
+if os.getenv('DEBUG') == 'True':
+    DEBUG = True
+else:
+    DEBUG = False
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS')
+ALLOWED_HOSTS = (list(os.getenv('ALLOWED_HOSTS').split(', ')))
 
 INSTALLED_APPS = [
     'django.contrib.auth',
