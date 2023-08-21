@@ -7,8 +7,8 @@ from recipes.models import Recipe
 
 def favorite_or_cart(self, model, id):
     objects = model.objects.filter(
-            user=self.request.user,
-            recipe=get_object_or_404(Recipe, id=id))
+        user=self.request.user,
+        recipe=get_object_or_404(Recipe, id=id))
 
     fav_flag = objects.exists()
     if self.request.method == "POST":
