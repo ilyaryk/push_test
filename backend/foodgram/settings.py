@@ -7,7 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY',
                        default='p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs')
-DEBUG = (os.getenv('DEBUG') == 'True')
+DEBUG = True
+#DEBUG = (os.getenv('DEBUG') == 'True')
 
 ALLOWED_HOSTS = (list(os.getenv('ALLOWED_HOSTS', default='*').split(', ')))
 
@@ -68,8 +69,8 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
         'HOST': 'localhost',
         'PORT': '5432',
     }
-}
-'''
+}'''
+
 
 DATABASES = {
     'default': {
