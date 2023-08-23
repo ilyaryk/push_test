@@ -234,7 +234,6 @@ class RecipeCreateOrUpdateSerializer(serializers.ModelSerializer):
                 ingredient_id=ingredient['id'],
                 recipe=recipe,
                 amount=amount))
-        print(objs)
         AmountOfIngredient.objects.bulk_create(objs)
 
     def create(self, validated_data):

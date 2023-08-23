@@ -124,17 +124,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         textob = p.beginText()
         textob.setTextOrigin(inch, inch)
         textob.setFont("Helvetica", 14)
-        ids = [i[0] for i in request.user.buyer.values_list('recipe')]
         objs = (
             AmountOfIngredient.objects.filter(
-                recipe__in=ids,)).select_related('recipes').values(
+                recipe__in=list(request.user.buyer.values_list(
+                    'recipe',
+                    flat=True)),)).select_related('recipes').values(
                     'ingredient__name',
                     'ingredient__measurement_unit',).annotate(
-                        amount=Sum('amount'))
+                        summa=Sum('amount'))
         for obj in objs:
             line_out = (str(obj['ingredient__name'])
                         + str(obj['ingredient__measurement_unit'])
-                        + str(obj['amount']))
+                        + str(obj['summa']))
             textob.textLine(line_out)
         p.drawText(textob)
         p.showPage()
