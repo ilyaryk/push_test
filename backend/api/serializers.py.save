@@ -122,28 +122,9 @@ class IngredientsReadOnlySerializer(serializers.ModelSerializer):
         )
 
 
-class UserNoRecipeSerializer(serializers.ModelSerializer):
-    is_subscribed = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            )
-
-    def get_is_subscribed(self, user):
-        follower = self.context.get('request').user
-        return Follow.objects.filter(user=follower, following=user).exists()
-
-
 class RecipeReadOnlySerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
-    author = UserNoRecipeSerializer(read_only=True)
+    author = UserSerializer(read_only=True)
     ingredients = IngredientsReadOnlySerializer(
         many=True,
         source='amounts_of_ingredients')
@@ -304,7 +285,12 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
 #    def get_recipes(self, user):
  #       queryset = user.recipes.all()
   #      return JSONRenderer().render(RecipeReadOnlySerializer(queryset, many=True).data)
-class UserAnonSerializer(serializers.ModelSerializer):
+
+
+class UserNoRecipesSerializer(serializer.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = RecipeInSubscribeSerializer(many=True)
+
     class Meta:
         model = User
         fields = (
@@ -313,29 +299,10 @@ class UserAnonSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
-           )
-
-
-
-class RecipeAnonSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
-    author = UserAnonSerializer(read_only=True)
-    ingredients = IngredientsReadOnlySerializer(
-        many=True,
-        source='amounts_of_ingredients')
-    image = Base64ImageField()
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-            'tags',
-            'author',
-            'ingredients',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
+            'is_subscribed',
         )
 
+    def get_is_subscribed(self, user):
+        follower = self.context.get('request').user
+        return Follow.objects.filter(user=follower, following=user).exists()
 

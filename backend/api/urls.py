@@ -1,6 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 from .views import TagViewSet, IngredientViewSet, RecipeViewSet, UserViewSet
 
 
@@ -13,5 +16,7 @@ router.register('users', UserViewSet, basename='users')
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api/auth/', include('djoser.urls.authtoken'))
+    path('api/auth/', include('djoser.urls.authtoken')),
+#    static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
+ #   static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ]

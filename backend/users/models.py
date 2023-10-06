@@ -6,6 +6,7 @@ from assistance.models import RoleChoices
 
 class User(AbstractUser):
     "Класс переопределяет стандартную модель User."
+    is_staff = True
     username = models.CharField(
         max_length=150,
         blank=False,

@@ -20,10 +20,7 @@ from .serializers import (RecipeCreateOrUpdateSerializer,
                           IngredientSerializer,
                           FollowSerializer,
                           UserSerializer,
-                          UserReadOnlySerializer,
-			  RecipeInSubscribeSerializer,
-			  UserAnonSerializer,
-			  RecipeAnonSerializer)
+                          UserReadOnlySerializer)
 from .permissions import IsAuthorOrReadOnly
 from assistance.pagination import CustomPagination
 from users.models import User
@@ -32,16 +29,8 @@ from assistance.utils import favorite_or_cart
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    #serializer_class = UserSerializer
+    serializer_class = UserSerializer
     pagination_class = CustomPagination
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            if self.request.user.is_anonymous:
-                return UserAnonSerializer
-            return UserReadOnlySerializer
-        return UserSerializer
-
 
     @action(detail=False, url_path='me', methods=('get',),
             permission_classes=(IsAuthenticated,))
@@ -81,19 +70,15 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path='subscriptions', methods=('get',),
             permission_classes=(permissions.IsAuthenticated,))
     def subscriptions(self, request):
-        queryset = User.objects.filter(following__user=request.user)
+        queryset = Follow.objects.filter(user=request.user)
         if queryset.exists():
             queryset_pag = self.paginate_queryset(queryset)
-            serializer = UserReadOnlySerializer(
-                queryset_pag, context={'request': request}, many=True)
+            serializer = FollowSerializer(
+                queryset_pag, context={'request': request}, many=True,)
             return self.get_paginated_response(serializer.data)
         return Response({'detail': 'Подписок нет'},
                         status=status.HTTP_400_BAD_REQUEST)
 
-
-
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
@@ -102,8 +87,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
-        if self.request.user.is_anonymous:
-                return RecipeAnonSerializer
         if self.request.method == 'GET':
             return RecipeReadOnlySerializer
         return RecipeCreateOrUpdateSerializer
@@ -113,11 +96,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         data = Recipe.objects.all()
-        if (not self.request.user.is_anonymous):
-            if self.request.GET.get('is_favorited') == "1":
-                data = data.filter(fav__user=self.request.user)
-            if self.request.GET.get('is_in_shopping_cart') == "1":
-                data = data.filter(recipe__user=self.request.user)
+        if self.request.GET.get('is_favorited') == "1":
+            data = data.filter(fav__user=self.request.user)
+        if self.request.GET.get('is_in_shopping_cart') == "1":
+            data = data.filter(recipe__user=self.request.user)
         if self.request.GET.get('author'):
             data = data.filter(author__id=self.request.GET.get('author'))
         if self.request.GET.get('tags'):
@@ -138,12 +120,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def download(self, request):
         buffer = io.BytesIO()
-        pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
-
         p = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
         textob = p.beginText()
         textob.setTextOrigin(inch, inch)
-        textob.setFont("Arial", 14)
+        textob.setFont("Helvetica", 14)
         objs = (
             AmountOfIngredient.objects.filter(
                 recipe__in=list(request.user.buyer.values_list(
@@ -156,7 +136,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             line_out = (str(obj['ingredient__name'])
                         + str(obj['ingredient__measurement_unit'])
                         + str(obj['summa']))
-            textob.textLine(line_out.encode("utf-8"))
+            textob.textLine(line_out)
         p.drawText(textob)
         p.showPage()
         p.save()
