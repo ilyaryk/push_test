@@ -138,12 +138,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def download(self, request):
         buffer = io.BytesIO()
-        pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
-
+        pdfmetrics.registerFont(TTFont(name='Cyrillic', filename='assistance/font/Cyrillic/CYRIL1.ttf'))
         p = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
         textob = p.beginText()
         textob.setTextOrigin(inch, inch)
-        textob.setFont("Arial", 14)
+        textob.setFont("Cyrillic", 14)
         objs = (
             AmountOfIngredient.objects.filter(
                 recipe__in=list(request.user.buyer.values_list(
@@ -153,8 +152,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     'ingredient__measurement_unit',).annotate(
                         summa=Sum('amount'))
         for obj in objs:
-            line_out = (str(obj['ingredient__name'])
-                        + str(obj['ingredient__measurement_unit'])
+            line_out = (str(obj['ingredient__name']) + ' '
+                        + str(obj['ingredient__measurement_unit']) + ' '
                         + str(obj['summa']))
             textob.textLine(line_out.encode("utf-8"))
         p.drawText(textob)
