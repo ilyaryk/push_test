@@ -3,8 +3,8 @@ from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 from django.core.validators import MinValueValidator
 
-from drf_extra_fields.fields import Base64ImageField
-#from assistance.utils import Base64ImageField
+#from drf_extra_fields.fields import Base64ImageField
+from assistance.utils import Base64ImageField
 from users.models import User
 from recipes.models import (Recipe, Ingredient, Tag,
                             AmountOfIngredient, Favorite, Follow, Cart)

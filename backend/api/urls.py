@@ -8,6 +8,8 @@ from .views import TagViewSet, IngredientViewSet, RecipeViewSet, UserViewSet
 
 
 router = DefaultRouter()
+
+
 router.register('recipes', RecipeViewSet, basename='recipes')
 router.register('tags', TagViewSet, basename='tags')
 router.register('ingredients', IngredientViewSet, basename='ingredients')
@@ -20,3 +22,5 @@ urlpatterns = [
 #    static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
  #   static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 
