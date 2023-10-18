@@ -138,11 +138,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def download(self, request):
         buffer = io.BytesIO()
-        pdfmetrics.registerFont(TTFont(name='Cyrillic', filename='assistance/font/Cyrillic/CYRIL1.ttf'))
+        pdfmetrics.registerFont(TTFont(name='arial', filename='assistance/font/Cyrillic/arial.TTF'))
         p = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
         textob = p.beginText()
         textob.setTextOrigin(inch, inch)
-        textob.setFont("Cyrillic", 14)
+        textob.setFont("arial", 14)
         objs = (
             AmountOfIngredient.objects.filter(
                 recipe__in=list(request.user.buyer.values_list(

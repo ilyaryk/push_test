@@ -2,8 +2,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from recipes.models import Recipe
-
+from recipes.models import Recipe, Favorite
+from api.serializers import RecipeInSubscribeSerializer
 
 def favorite_or_cart(self, model, id):
     objects = model.objects.filter(
@@ -17,7 +17,8 @@ def favorite_or_cart(self, model, id):
 
         model.objects.create(user=self.request.user,
                              recipe=get_object_or_404(Recipe, id=id))
-        return Response(status=status.HTTP_201_CREATED)
+        serializer =  RecipeInSubscribeSerializer(Recipe.objects.get(id=id))
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     if not fav_flag:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     objects.delete()
