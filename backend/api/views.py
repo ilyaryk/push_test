@@ -121,7 +121,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.GET.get('author'):
             data = data.filter(author__id=self.request.GET.get('author'))
         if self.request.GET.get('tags'):
-            data = data.filter(tags__slug__in=[self.request.GET.get('tags')])
+            data = data.exclude(tags__slug__in=[self.request.GET.get('tags')])
         return (data)
 
     @action(detail=True, url_path='favorite', methods=('post', 'delete'),
@@ -172,5 +172,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
 class IngredientViewSet(viewsets.ModelViewSet):
     pagination_class = None
-    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    def get_queryset(self):
+        queryset = Ingredient.objects.filter(name__istartswith=self.request.GET.get('name'))
+        return queryset
