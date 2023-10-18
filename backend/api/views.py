@@ -138,7 +138,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,))
     def download(self, request):
         buffer = io.BytesIO()
-        pdfmetrics.registerFont(TTFont(name='Cyrillic', filename='assistance/font/Cyrillic/CYRIL1.ttf'))
+        pdfmetrics.registerFont(TTFont(name='Cyrillic', filename='assistance/font/Cyrillic/CYRIL1.TTF'))
         p = canvas.Canvas(buffer, pagesize=letter, bottomup=0)
         textob = p.beginText()
         textob.setTextOrigin(inch, inch)
