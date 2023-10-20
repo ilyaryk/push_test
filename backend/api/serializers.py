@@ -278,8 +278,8 @@ class RecipeInSubscribeSerializer(serializers.ModelSerializer):
 
 class UserReadOnlySerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
-    recipes = RecipeInSubscribeSerializer(many=True, source="less_recipes")
-    #recipes = serializers.SerializerMethodField()
+    #recipes = RecipeInSubscribeSerializer(many=True, source="less_recipes")
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -303,10 +303,14 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
         return user.recipes.count()
 
     def less_recipes(self):
-        return Recipe.objects.all().filter(author=self)[:100]
-#    def get_recipes(self, user):
- #       queryset = user.recipes.all()
-  #      return JSONRenderer().render(RecipeReadOnlySerializer(queryset, many=True).data)
+        return Recipe.objects.all().filter(author=self)
+    
+    def get_recipes(self, user):
+        return RecipeInSubscribeSerializer(Recipe.objects.filter(
+            author=user), many=True).data[:self.context.get('request').GET.get(
+                'recipes_limit')]
+
+
 class UserAnonSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
