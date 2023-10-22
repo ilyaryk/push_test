@@ -94,13 +94,15 @@ class UserViewSet(viewsets.ModelViewSet):
 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from rest_framework import filters
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsAuthorOrReadOnly)
     pagination_class = CustomPagination
-
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['tags__slug']
     def get_serializer_class(self):
         if self.request.user.is_anonymous:
                 return RecipeAnonSerializer
