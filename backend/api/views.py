@@ -133,7 +133,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    '''def get_queryset(self):
+    def get_queryset(self):
         data = Recipe.objects.all()
         if (not self.request.user.is_anonymous):
             if self.request.GET.get('is_favorited') == "1":
@@ -144,7 +144,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             data = data.filter(author__id=self.request.GET.get('author'))
         #if self.request.GET.get('tags'):
         #    data = data.filter(tags__slug__in=[self.request.GET.get('tags')])
-        return (data)'''
+        return (data)
 
     @action(detail=True, url_path='favorite', methods=('post', 'delete'),
             permission_classes=(permissions.IsAuthenticated,))
