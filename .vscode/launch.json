@@ -12,7 +12,8 @@
             "args": ["runserver"],
             "console": "integratedTerminal",
             "justMyCode": true,
-            "django": true
+            "django": true,
+            "debug.inlineValues": "on",  
         }
     ]
 }

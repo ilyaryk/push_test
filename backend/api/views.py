@@ -94,13 +94,30 @@ class UserViewSet(viewsets.ModelViewSet):
 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from django_filters import rest_framework as filters
+from django.db.models import Q
+import json
+
+import django_filters
+
+class RecipeFilter(django_filters.FilterSet):
+    class Meta:
+        model = Recipe
+        fields = ['tags__slug']
+
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsAuthorOrReadOnly)
     pagination_class = CustomPagination
+    #filter_backends = [filters.SearchFilter]
+    #search_fields = ['tags__slug']
 
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = RecipeFilter
+    #filterset_fields = ('tags__slug',)
     def get_serializer_class(self):
         if self.request.user.is_anonymous:
                 return RecipeAnonSerializer
@@ -111,7 +128,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def get_queryset(self):
+    '''def get_queryset(self):
         data = Recipe.objects.all()
         if (not self.request.user.is_anonymous):
             if self.request.GET.get('is_favorited') == "1":
@@ -120,9 +137,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 data = data.filter(recipe__user=self.request.user)
         if self.request.GET.get('author'):
             data = data.filter(author__id=self.request.GET.get('author'))
-        if self.request.GET.get('tags'):
-            data = data.filter(tags__slug__in=[self.request.GET.get('tags')])
-        return (data)
+        #if self.request.GET.get('tags'):
+        #    data = data.filter(tags__slug__in=[self.request.GET.get('tags')])
+        return (data)'''
 
     @action(detail=True, url_path='favorite', methods=('post', 'delete'),
             permission_classes=(permissions.IsAuthenticated,))
