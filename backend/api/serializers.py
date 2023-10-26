@@ -305,8 +305,19 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
     #def less_recipes(self):
       #  return Recipe.objects.all().filter(author=self)
     
+<<<<<<< HEAD
   #  def get_recipes(self, user):
     #    return RecipeInSubscribeSerializer(Recipe.objects.all()).data
+=======
+    def get_recipes(self, user):
+        if self.context.get('request').GET.get('recipes_limit'):
+            limit = int(self.context.get('request').GET.get(
+                    'recipes_limit'))
+        else:
+            limit=100
+        return RecipeInSubscribeSerializer(Recipe.objects.filter(
+            author=user), many=True).data[:limit]
+>>>>>>> 02cde7bbd1e2903074c6d21f2c641b1401920cb0
 
 
 class UserAnonSerializer(serializers.ModelSerializer):
