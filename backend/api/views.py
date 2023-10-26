@@ -101,9 +101,14 @@ import json
 import django_filters
 
 class RecipeFilter(django_filters.FilterSet):
-    class Meta:
+    '''class Meta:
         model = Recipe
-        fields = ['tags__slug']
+        fields = ['tags__slug']'''
+    tags = filters.ModelMultipleChoiceFilter(
+        field_name='tags__slug',
+        to_field_name='slug',
+        queryset=Tag.objects.all(),
+    )
 
 
 
