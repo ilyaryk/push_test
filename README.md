@@ -9,3 +9,7 @@ docker-compose up --build
 python manage.py migrate
 в контейнерах infra-backend и infra-web
 
+Python 3.7
+Django 3.2
+
+Стэк: python, Docker, Django, gunicorn
